@@ -216,3 +216,10 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+.claude
+rag.pdf
+moulinette.zip
+datasets_public.zip
+vllm-0.10.1.zip
+subject.md
