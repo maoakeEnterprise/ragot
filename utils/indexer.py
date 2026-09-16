@@ -1,10 +1,13 @@
 from pathlib import Path
+from langchain_text_splitters import Language, RecursiveCharacterTextSplitter
+from langchain_core.documents import Document
 
 
 class Indexer:
 
-    def __init__(self, path: str) -> None:
+    def __init__(self, path: str, scope: list[str]) -> None:
         self.path: Path = Path(path)
+        self.scope_files = scope
 
     def get_files(self, path: str | None = None) -> None:
         list_path: list[Path] = []
@@ -18,6 +21,50 @@ class Indexer:
     def _algo_files(self, path: Path) -> list[Path]:
         list_path: list[Path] = []
         for path_file in path.rglob("*"):
-            if path_file.is_file():
+            if path_file.is_file() and self._in_scope_files(path_file):
                 list_path.append(path_file)
         return list_path
+
+    def _in_scope_files(self, path: Path) -> bool:
+        extent = f"{path}".split(".")[-1]
+        return extent in self.scope_files
+
+    def init_chunk_python(self) -> RecursiveCharacterTextSplitter:
+        splitter = RecursiveCharacterTextSplitter.from_language(
+            language=Language.PYTHON,
+            chunk_size=300,
+            chunk_overlap=100
+        )
+        return splitter
+
+    def init_chunk_markdown(self) -> RecursiveCharacterTextSplitter:
+        splitter = RecursiveCharacterTextSplitter.from_language(
+            language=Language.MARKDOWN,
+            chunk_size=300,
+            chunk_overlap=100
+        )
+        return splitter
+
+    def init_chunk_txt(self) -> RecursiveCharacterTextSplitter:
+        splitter = RecursiveCharacterTextSplitter(
+            chunk_size=300,
+            chunk_overlap=100
+        )
+        return splitter
+
+    def _get_extent(self, path: Path) -> str:
+        return (f"{path}").split(".")[-1]
+
+    def chunk_files(self, list_path: list[Path]) -> None:
+        py_splitter = self.init_chunk_python()
+        md_splitter = self.init_chunk_markdown()
+        txt_splitter = self.init_chunk_txt()
+        list_doc: list[Document] = []
+        for path in list_path:
+            if self._get_extent(path) == 'py':
+                list_doc.append(py_splitter.create_documents([path]))
+            elif self._get_extent(path) == 'md':
+                list_doc.append(md_splitter.create_documents([path]))
+            else:
+                list_doc.append(txt_splitter.create_documents([path]))
+        return list_doc
