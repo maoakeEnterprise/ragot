@@ -10,6 +10,5 @@ if __name__ == "__main__":
     }
 
     indexer = Indexer("data/raw/vllm-0.10.1/", scope)
-    test = indexer.get_files()
-    for i in test:
-        print(i)
+    files = indexer.get_files()
+    chunked = indexer.chunk_files(list_path=files)
