@@ -1,4 +1,4 @@
-from utils import Indexer
+from utils import Chunker
 
 
 if __name__ == "__main__":
@@ -9,6 +9,6 @@ if __name__ == "__main__":
         'txt'
     }
 
-    indexer = Indexer("data/raw/vllm-0.10.1/", scope)
+    indexer = Chunker("data/raw/vllm-0.10.1/", scope)
     files = indexer.get_files()
     chunked = indexer.chunk_files(list_path=files)

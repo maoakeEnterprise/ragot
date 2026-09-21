@@ -3,7 +3,7 @@ from langchain_text_splitters import Language, RecursiveCharacterTextSplitter
 from langchain_core.documents import Document
 
 
-class Indexer:
+class Chunker:
 
     def __init__(self, path: str, scope: list[str]) -> None:
         self.path: Path = Path(path)
