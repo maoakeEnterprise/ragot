@@ -9,7 +9,8 @@ dependencies = [
     "pydantic",
     "transformers",
     "langchain-text-splitters",
-    "fire"
+    "fire",
+    "torch"
 ]
 
 [dependency-groups]

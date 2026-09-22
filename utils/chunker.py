@@ -32,7 +32,7 @@ class Chunker:
     def _init_chunk_python(self) -> RecursiveCharacterTextSplitter:
         splitter = RecursiveCharacterTextSplitter.from_language(
             language=Language.PYTHON,
-            chunk_size=300,
+            chunk_size=2000,
             chunk_overlap=100
         )
         return splitter
@@ -40,14 +40,14 @@ class Chunker:
     def _init_chunk_markdown(self) -> RecursiveCharacterTextSplitter:
         splitter = RecursiveCharacterTextSplitter.from_language(
             language=Language.MARKDOWN,
-            chunk_size=300,
+            chunk_size=2000,
             chunk_overlap=100
         )
         return splitter
 
     def _init_chunk_txt(self) -> RecursiveCharacterTextSplitter:
         splitter = RecursiveCharacterTextSplitter(
-            chunk_size=300,
+            chunk_size=2000,
             chunk_overlap=100
         )
         return splitter
@@ -59,13 +59,14 @@ class Chunker:
         py_splitter = self._init_chunk_python()
         md_splitter = self._init_chunk_markdown()
         txt_splitter = self._init_chunk_txt()
-        list_doc: list[Document] = []
+        list_doc: list[list[Document]] = []
         for path in list_path:
-            content = path.read_text()
-            if self._get_extent(path) == 'py':
-                list_doc.append(py_splitter.create_documents([content]))
-            elif self._get_extent(path) == 'md':
-                list_doc.append(md_splitter.create_documents([content]))
-            else:
-                list_doc.append(txt_splitter.create_documents([content]))
+            with path.open("r") as f:
+                content = f.read()
+                if self._get_extent(path) == 'py':
+                    list_doc.append(py_splitter.create_documents([content]))
+                elif self._get_extent(path) == 'md':
+                    list_doc.append(md_splitter.create_documents([content]))
+                else:
+                    list_doc.append(txt_splitter.create_documents([content]))
         return list_doc
