@@ -1,7 +1,7 @@
 from pathlib import Path
 from langchain_text_splitters import Language, RecursiveCharacterTextSplitter
 from langchain_core.documents import Document
-from utils.minimal_source import Chunk
+from utils.models import Chunk
 
 
 class Chunker:
