@@ -10,7 +10,8 @@ dependencies = [
     "transformers",
     "langchain-text-splitters",
     "fire",
-    "torch"
+    "torch",
+    "nltk>=3.10.3",
 ]
 
 [dependency-groups]
