@@ -1,4 +1,4 @@
-from utils import Chunker
+from utils import Chunker, Tokenizer
 
 
 if __name__ == "__main__":
@@ -12,6 +12,6 @@ if __name__ == "__main__":
     indexer = Chunker("data/raw/vllm-0.10.1/", scope)
     files = indexer.get_files()
     chunked = indexer.chunk_files(list_path=files)
-    for chunk in chunked:
-        print(f"FIRST CHAR: {chunk.first_character_index}")
-        print(f"LAST CHAR: {chunk.last_character_index}")
+    tokenizer = Tokenizer()
+    print(tokenizer.tokenize("LoRARequest"))
+    print(tokenizer.tokenize("How to use get_lora_path?"))
