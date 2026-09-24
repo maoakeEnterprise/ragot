@@ -20,7 +20,10 @@ class Tokenizer:
                     res.append(word)
                 tmp = [p for p in tmp if self._is_kept(p)]
                 res.extend(tmp)
-        return [p.lower() for p in res]
+        final_res = [p.lower() for p in res]
+        if len(final_res) == 0:
+            raise ValueError("Something is wrong")
+        return final_res
 
     def _extract_words(self, text: str) -> list[str]:
         return self.word_re.findall(text)

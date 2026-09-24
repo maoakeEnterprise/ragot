@@ -19,5 +19,3 @@ if __name__ == "__main__":
     bm25.index(token_list)
     question_token = tokenizer.tokenize("How to configure LoRA?")
     test = bm25.retrieve(query_tokens=[question_token], k=5)
-    for i in range(len(test.documents[0])):
-        print(chunked[test.documents[0][i]].file_path, test.scores[0][i])
