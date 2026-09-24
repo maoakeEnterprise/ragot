@@ -78,7 +78,7 @@ class Chunker:
         txt_splitter = self._init_chunk_txt()
         list_chunk: list[Chunk] = []
         for path in list_path:
-            with path.open("r") as f:
+            with path.open("r", encoding="utf-8", errors="ignore") as f:
                 content = f.read()
                 if self._get_extent(path) == 'py':
                     tmp = py_splitter.create_documents([content])
