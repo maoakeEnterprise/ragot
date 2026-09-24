@@ -2,6 +2,7 @@ from utils.chunker import Chunker
 from utils.models import MinimalSource, Chunk
 from utils.tokenizer import Tokenizer
 from utils.text_utils import STOP_WORDS
+from utils.indexing import Indexing
 
 
 __version__ = "1.0.0"
@@ -13,4 +14,5 @@ __all__ = [
     "Chunk",
     "Tokenizer",
     "STOP_WORDS",
+    "Indexing",
 ]

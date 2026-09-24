@@ -1,4 +1,5 @@
 from utils import Chunker, Tokenizer
+import bm25s
 
 
 if __name__ == "__main__":
@@ -13,5 +14,9 @@ if __name__ == "__main__":
     files = indexer.get_files()
     chunked = indexer.chunk_files(list_path=files)
     tokenizer = Tokenizer()
-    print(tokenizer.tokenize("LoRARequest"))
-    print(tokenizer.tokenize("How to use get_lora_path?"))
+    bm25 = bm25s.BM25(k1=1, b=0.75)
+    token_list = [tokenizer.tokenize(chunk.content) for chunk in chunked]
+    bm25.index(token_list)
+    question_token = tokenizer.tokenize("How to configure LoRA?")
+    test = bm25.retrieve(query_tokens=[question_token], k=5)
+    print(test)

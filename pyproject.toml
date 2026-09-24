@@ -12,6 +12,7 @@ dependencies = [
     "fire",
     "torch",
     "nltk>=3.10.3",
+    "bm25s>=0.3.11",
 ]
 
 [dependency-groups]
