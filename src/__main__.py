@@ -14,9 +14,10 @@ if __name__ == "__main__":
     files = indexer.get_files()
     chunked = indexer.chunk_files(list_path=files)
     tokenizer = Tokenizer()
-    bm25 = bm25s.BM25(k1=1, b=0.75)
+    bm25 = bm25s.BM25(k1=1.5, b=0.75)
     token_list = [tokenizer.tokenize(chunk.content) for chunk in chunked]
     bm25.index(token_list)
     question_token = tokenizer.tokenize("How to configure LoRA?")
     test = bm25.retrieve(query_tokens=[question_token], k=5)
-    print(test)
+    for i in range(len(test.documents[0])):
+        print(chunked[test.documents[0][i]].file_path, test.scores[0][i])
