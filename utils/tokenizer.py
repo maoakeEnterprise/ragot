@@ -21,8 +21,6 @@ class Tokenizer:
                 tmp = [p for p in tmp if self._is_kept(p)]
                 res.extend(tmp)
         final_res = [p.lower() for p in res]
-        if len(final_res) == 0:
-            raise ValueError("Something is wrong")
         return final_res
 
     def _extract_words(self, text: str) -> list[str]:
