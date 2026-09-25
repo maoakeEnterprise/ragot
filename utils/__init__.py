@@ -3,6 +3,7 @@ from utils.models import MinimalSource, Chunk, ChunkIndex
 from utils.tokenizer import Tokenizer
 from utils.text_utils import STOP_WORDS
 from utils.data_manager import DataManager
+from utils.retrievier import Retriever
 
 
 __version__ = "1.0.0"
@@ -16,4 +17,5 @@ __all__ = [
     "STOP_WORDS",
     "DataManager",
     "ChunkIndex",
+    "Retriever",
 ]

@@ -1,5 +1,4 @@
-from utils import Chunker, Tokenizer, ChunkIndex, DataManager
-import bm25s
+from utils import Chunker, ChunkIndex, DataManager, Retriever
 
 
 if __name__ == "__main__":
@@ -9,26 +8,24 @@ if __name__ == "__main__":
         'md',
         'txt'
     ]
+    index_dir = "data/processed"
 
     indexer = Chunker("data/raw/vllm-0.10.1/", scope)
     files = indexer.get_files()
     chunkIndex = ChunkIndex(chunks=indexer.chunk_files(list_path=files))
 
-    DataManager.init_folder()
-    DataManager.create_chunk_file(chunkIndex.model_dump_json())
-
-    tokenizer = Tokenizer()
-    bm25 = bm25s.BM25(k1=1.5, b=0.75)
-
-    bm25.index([
-        tokenizer.tokenize(chunk.content)
-        for chunk in chunkIndex.chunks
-    ])
-
-    bm25.save("data/processed/bm25")
-
-    bm25 = DataManager.load_index_file()
-    chunkIndex = DataManager.load_chunk_file()
-    question_token = tokenizer.tokenize("How to configure LoRA?")
-    test = bm25.retrieve(query_tokens=[question_token], k=5)
-    print(test)
+    data_m = DataManager()
+    data_m.init_folder()
+    data_m.register_chunk_file(
+        data=chunkIndex.model_dump_json(),
+        index_dir=index_dir)
+    data_m.save_index_data(chunk_index=chunkIndex, index_dir=index_dir)
+    retrivier = Retriever(
+        index_dir=index_dir,
+        tokenizer=data_m.get_tokenizer())
+    ms_l = retrivier.search(query="How to use get_lora_path?", k=5)
+    for ms in ms_l:
+        print(f"FILE PATH: {ms.file_path}\n"
+              f"first char id: {ms.first_character_index}\n"
+              f"last char id: {ms.last_character_index}\n"
+              )
