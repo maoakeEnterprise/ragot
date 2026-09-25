@@ -9,19 +9,19 @@ class DataManager:
         self.bm25 = bm25s.BM25(k1=1.5, b=0.75)
 
     @staticmethod
-    def init_folder(folder: str = "data/processed") -> None:
+    def init_folder(folder: str = "data/processed/") -> None:
         Path(folder).mkdir(parents=True, exist_ok=True)
 
     @staticmethod
     def register_chunk_file(data: str,
-                            index_dir: str = "data/processed") -> None:
-        Path(f"{index_dir}/chunks.json").write_text(data)
+                            index_dir: str = "data/processed/") -> None:
+        Path(f"{index_dir}chunks.json").write_text(data)
 
     @staticmethod
-    def load_chunk_file(index_dir: str = "data/processed"
+    def load_chunk_file(index_dir: str = "data/processed/"
                         ) -> ChunkIndex:
         return ChunkIndex.model_validate_json(
-            Path(f"{index_dir}/chunks.json").read_text())
+            Path(f"{index_dir}chunks.json").read_text())
 
     @staticmethod
     def load_index_file(path: str = "data/processed/bm25") -> bm25s.BM25:

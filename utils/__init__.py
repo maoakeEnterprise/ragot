@@ -4,6 +4,7 @@ from utils.tokenizer import Tokenizer
 from utils.text_utils import STOP_WORDS
 from utils.data_manager import DataManager
 from utils.retrievier import Retriever
+from utils.rag import Rag
 
 
 __version__ = "1.0.0"
@@ -18,4 +19,5 @@ __all__ = [
     "DataManager",
     "ChunkIndex",
     "Retriever",
+    "Rag",
 ]

@@ -8,11 +8,13 @@ if __name__ == "__main__":
         'md',
         'txt'
     ]
-    index_dir = "data/processed"
+    index_dir = "data/processed/"
 
     indexer = Chunker("data/raw/vllm-0.10.1/", scope)
     files = indexer.get_files()
-    chunkIndex = ChunkIndex(chunks=indexer.chunk_files(list_path=files))
+    chunkIndex = ChunkIndex(chunks=indexer.chunk_files(
+        list_path=files,
+        max_chunk=2000))
 
     data_m = DataManager()
     data_m.init_folder()
