@@ -15,6 +15,8 @@ class Retriever:
     def search(self, query: str, k: int = 5) -> list[MinimalSource]:
         ms_l: list[MinimalSource] = []
         token_query = self.tokenizer.tokenize(query)
+        if len(token_query) == 0:
+            raise ValueError("The Query is not good")
         res = self.bm25.retrieve([token_query], k=k)
         for id in res.documents[0]:
             chunk = self.chunk_index.chunks[id]
