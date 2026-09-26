@@ -1353,6 +1353,7 @@ dependencies = [
     { name = "nltk" },
     { name = "pydantic" },
     { name = "torch" },
+    { name = "tqdm" },
     { name = "transformers" },
 ]
 
@@ -1371,6 +1372,7 @@ requires-dist = [
     { name = "nltk", specifier = ">=3.10.3" },
     { name = "pydantic" },
     { name = "torch" },
+    { name = "tqdm", specifier = ">=4.70.1" },
     { name = "transformers" },
 ]
 

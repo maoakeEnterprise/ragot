@@ -5,6 +5,8 @@ from utils.text_utils import STOP_WORDS
 from utils.data_manager import DataManager
 from utils.retrievier import Retriever
 from utils.rag import Rag
+from utils.models import (RagDataset, AnsweredQuestion, UnansweredQuestion,
+                          MinimalSearchResults, StudentSearchResults)
 
 
 __version__ = "1.0.0"
@@ -20,4 +22,9 @@ __all__ = [
     "ChunkIndex",
     "Retriever",
     "Rag",
+    "RagDataset",
+    "AnsweredQuestion",
+    "UnansweredQuestion",
+    "MinimalSearchResults",
+    "StudentSearchResults",
 ]
