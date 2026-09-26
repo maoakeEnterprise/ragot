@@ -1,7 +1,7 @@
 from utils import (Chunker, ChunkIndex, DataManager, Retriever, RagDataset,
                    MinimalSearchResults, StudentSearchResults)
 from pathlib import Path
-import tqdm
+from tqdm import tqdm
 
 
 class Rag:

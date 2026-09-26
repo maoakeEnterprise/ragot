@@ -4,9 +4,9 @@ from utils.tokenizer import Tokenizer
 from utils.text_utils import STOP_WORDS
 from utils.data_manager import DataManager
 from utils.retrievier import Retriever
-from utils.rag import Rag
 from utils.models import (RagDataset, AnsweredQuestion, UnansweredQuestion,
                           MinimalSearchResults, StudentSearchResults)
+from utils.rag import Rag
 
 
 __version__ = "1.0.0"
