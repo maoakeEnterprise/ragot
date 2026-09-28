@@ -15,13 +15,13 @@ class DataManager:
     @staticmethod
     def register_chunk_file(data: str,
                             index_dir: str = "data/processed/") -> None:
-        Path(f"{index_dir}chunks.json").write_text(data)
+        Path(index_dir, "chunks.json").write_text(data)
 
     @staticmethod
     def load_chunk_file(index_dir: str = "data/processed/"
                         ) -> ChunkIndex:
         return ChunkIndex.model_validate_json(
-            Path(f"{index_dir}chunks.json").read_text())
+            Path(index_dir, "chunks.json").read_text())
 
     @staticmethod
     def load_index_file(path: str = "data/processed/bm25") -> bm25s.BM25:
@@ -33,7 +33,7 @@ class DataManager:
             self.tokenizer.tokenize(chunk.content)
             for chunk in chunk_index.chunks
         ])
-        self.bm25.save(f"{index_dir}bm25")
+        self.bm25.save(str(Path(index_dir, "bm25")))
 
     def get_tokenizer(self) -> Tokenizer:
         return self.tokenizer

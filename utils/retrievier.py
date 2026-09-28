@@ -1,10 +1,18 @@
 from utils import Tokenizer, DataManager, MinimalSource
 import bm25s
+from pathlib import Path
 
 
 class Retriever:
-    def __init__(self, index_dir: str, tokenizer: Tokenizer | None = None):
-        self.bm25 = bm25s.BM25.load(f"{index_dir}/bm25")
+    def __init__(self, index_dir: str, tokenizer: Tokenizer | None = None
+                 ) -> None:
+        path = Path(index_dir, "bm25")
+        if not path.exists():
+            raise FileNotFoundError("The index did not exist you should try "
+                                    "to start the command index:\n"
+                                    "uv run python -m src index "
+                                    "--max_chunk_size <number>")
+        self.bm25 = bm25s.BM25.load(str(path))
         self.chunk_index = DataManager.load_chunk_file(
             index_dir=index_dir)
         if tokenizer is not None:

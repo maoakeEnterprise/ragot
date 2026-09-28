@@ -15,14 +15,26 @@ class Rag:
             output_dir: str = "data/processed/"
     ) -> None:
 
+        if (not isinstance(max_chunk_size, int)
+                or isinstance(max_chunk_size, bool)
+                or not 201 <= max_chunk_size <= 2000):
+            raise ValueError("max_chunk_size should be an integer "
+                             "between [201, 2000]")
+        corpus_dir = Path(raw_dir, "vllm-0.10.1")
+        if not corpus_dir.is_dir():
+            raise FileNotFoundError(f"The directory {corpus_dir} does not "
+                                    "exist")
+
         scope = [
                 'py',
                 'md',
                 'txt'
             ]
         data_m = DataManager()
-        indexer = Chunker(path=f"{raw_dir}vllm-0.10.1/", scope=scope)
+        indexer = Chunker(path=str(corpus_dir), scope=scope)
         files = indexer.get_files()
+        if len(files) == 0:
+            raise ValueError(f"No .py/.md/.txt files found in {corpus_dir}")
         chunk_index = ChunkIndex(
             chunks=indexer.chunk_files(
                 list_path=files,
@@ -37,8 +49,14 @@ class Rag:
             chunk_index=chunk_index, index_dir=output_dir
         )
 
+    @staticmethod
+    def _check_k(k: int) -> None:
+        if not isinstance(k, int) or isinstance(k, bool) or k < 1:
+            raise ValueError("k should be an integer upper to 0")
+
     def search(self, query: str, k: int = 5) -> None:
 
+        self._check_k(k)
         retriever = Retriever(index_dir=self.index_dir)
         source = retriever.search(query=query, k=k)
         for ms in source:
@@ -51,20 +69,24 @@ class Rag:
             k: int = 5,
             save_directory: str = "data/output/search_results"
     ) -> None:
-
+        self._check_k(k)
         retriever = Retriever(index_dir=self.index_dir)
+        if k > len(retriever.chunk_index.chunks):
+            raise ValueError("k should not be larger than the number of "
+                             f"chunks ({len(retriever.chunk_index.chunks)})")
         data_set = RagDataset.model_validate_json(
             Path(dataset_path).read_text())
         results: list[MinimalSearchResults] = []
 
         for q in tqdm(data_set.rag_questions):
+            try:
+                sources = retriever.search(query=q.question, k=k)
+            except ValueError:
+                sources = []
             msr = MinimalSearchResults(
                 question_id=q.question_id,
                 question=q.question,
-                retrieved_sources=retriever.search(
-                    query=q.question,
-                    k=k
-                )
+                retrieved_sources=sources
             )
             results.append(msr)
 
