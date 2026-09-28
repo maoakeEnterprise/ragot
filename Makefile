@@ -1,10 +1,13 @@
-.PHONY: install run debug clean lint data_search_doc moulinette_doc data_search_code moulinette_code
+.PHONY: install run debug clean lint data_search_doc moulinette_doc data_search_code moulinette_code index
 
 install:
 	uv sync
 
 run:
 	uv run python -m src
+
+index:
+	uv run python -m src index --max_chunk_size 2000
 
 data_search_code:
 	uv run python -m src search_dataset --dataset_path data/datasets/AnsweredQuestions/dataset_code_public.json --k 5 --save_directory data/output/search_results/UnansweredQuestions

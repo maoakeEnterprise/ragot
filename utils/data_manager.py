@@ -33,7 +33,7 @@ class DataManager:
             self.tokenizer.tokenize(chunk.content)
             for chunk in chunk_index.chunks
         ])
-        self.bm25.save(f"{index_dir}/bm25")
+        self.bm25.save(f"{index_dir}bm25")
 
     def get_tokenizer(self) -> Tokenizer:
         return self.tokenizer
