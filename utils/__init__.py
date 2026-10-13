@@ -5,7 +5,8 @@ from utils.text_utils import STOP_WORDS
 from utils.data_manager import DataManager
 from utils.retrievier import Retriever
 from utils.models import (RagDataset, AnsweredQuestion, UnansweredQuestion,
-                          MinimalSearchResults, StudentSearchResults)
+                          MinimalSearchResults, StudentSearchResults,
+                          MinimalAnswer, StudentSearchResultsAndAnswer)
 from utils.manager_llm import ManagerLLM, ChunkLookUp
 from utils.rag import Rag
 
@@ -30,4 +31,6 @@ __all__ = [
     "StudentSearchResults",
     "ManagerLLM",
     "ChunkLookUp",
+    "MinimalAnswer",
+    "StudentSearchResultsAndAnswer",
 ]

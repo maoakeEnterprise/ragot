@@ -1,6 +1,7 @@
 from utils import (Chunker, ChunkIndex, DataManager, Retriever, RagDataset,
                    MinimalSearchResults, StudentSearchResults,
-                   ManagerLLM, ChunkLookUp)
+                   ManagerLLM, ChunkLookUp, MinimalAnswer,
+                   StudentSearchResultsAndAnswer)
 from pathlib import Path
 from tqdm import tqdm
 
@@ -118,7 +119,35 @@ class Rag:
             student_search_results_path: str,
             save_directory: str
     ) -> None:
-        pass
+        search_result = StudentSearchResults.model_validate_json(
+            Path(student_search_results_path).read_text()
+        )
+        lookup = ChunkLookUp(self.index_dir)
+        llm_m = ManagerLLM()
+        answers: list[MinimalAnswer] = []
+
+        for res in tqdm(search_result.search_results):
+            texts = [lookup.get(s) for s in res.retrieved_sources]
+            min_ans = MinimalAnswer(
+                question_id=res.question_id,
+                question=res.question,
+                retrieved_sources=res.retrieved_sources,
+                answer=llm_m.generate(
+                    query=res.question,
+                    sources=res.retrieved_sources,
+                    texts=texts
+                )
+            )
+            answers.append(min_ans)
+            save_dir = Path(save_directory)
+            save_dir.mkdir(parents=True, exist_ok=True)
+            output = StudentSearchResultsAndAnswer(
+                search_results=answers,
+                k=search_result.k
+            )
+            (save_dir / Path(student_search_results_path).name).write_text(
+                output.model_dump_json(indent=2)
+            )
 
     def evaluate(
             self,
