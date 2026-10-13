@@ -48,7 +48,7 @@ class ManagerLLM:
                 )["input_ids"]
             )
             if used_token + nb_tokens > max_context_tokens:
-                break
+                continue
             early_context.append(details)
             used_token += nb_tokens
         return "\n".join(early_context)
