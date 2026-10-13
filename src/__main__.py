@@ -2,6 +2,7 @@ from utils import Rag
 import fire
 from pydantic import ValidationError
 import sys
+import torch
 
 
 def print_error(header: str, message: str, e: BaseException) -> None:
@@ -36,3 +37,9 @@ if __name__ == "__main__":
     except KeyboardInterrupt as e:
         print_error("=============KEYBOARD=INTERRUPT=ERROR=======",
                     "SOMETHING GOT WRONG", e)
+    except torch.OutOfMemoryError as e:
+        print_error("=============OUT=OF=MEMORY=ERROR============",
+                    "NOT ENOUGH MEMORY TO LOAD OR RUN QWEN", e)
+    except OSError as e:
+        print_error("=============OS=ERROR=======================",
+                    "SOMETHING GOT WRONG (MODEL DOWNLOAD / FILE)", e)

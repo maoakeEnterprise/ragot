@@ -62,7 +62,7 @@ class ManagerLLM:
             {"role": "system", "content": self.sys_prompt},
             {
                 "role": "user",
-                "content": f"content : {context} \nquestion: {query}"
+                "content": f"Context : {context} \nQuestion: {query}"
             }
         ]
         inputs = self.tokenizer.apply_chat_template(

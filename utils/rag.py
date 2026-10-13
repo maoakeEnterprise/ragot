@@ -139,15 +139,15 @@ class Rag:
                 )
             )
             answers.append(min_ans)
-            save_dir = Path(save_directory)
-            save_dir.mkdir(parents=True, exist_ok=True)
-            output = StudentSearchResultsAndAnswer(
-                search_results=answers,
-                k=search_result.k
-            )
-            (save_dir / Path(student_search_results_path).name).write_text(
-                output.model_dump_json(indent=2)
-            )
+        save_dir = Path(save_directory)
+        save_dir.mkdir(parents=True, exist_ok=True)
+        output = StudentSearchResultsAndAnswer(
+            search_results=answers,
+            k=search_result.k
+        )
+        (save_dir / Path(student_search_results_path).name).write_text(
+            output.model_dump_json(indent=2)
+        )
 
     def evaluate(
             self,
