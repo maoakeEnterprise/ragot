@@ -53,7 +53,7 @@ class ManagerLLM:
             used_token += nb_tokens
         return "\n".join(early_context)
 
-    def generate(self, question: str, sources: list[MinimalSource],
+    def generate(self, query: str, sources: list[MinimalSource],
                  texts: list[str], max_new_tokens: int = 384) -> str:
         self._load()
         assert self.model is not None and self.tokenizer is not None
@@ -62,7 +62,7 @@ class ManagerLLM:
             {"role": "system", "content": self.sys_prompt},
             {
                 "role": "user",
-                "content": f"content : {context} \nquestion: {question}"
+                "content": f"content : {context} \nquestion: {query}"
             }
         ]
         inputs = self.tokenizer.apply_chat_template(
@@ -108,4 +108,4 @@ class ChunkLookUp:
             source.first_character_index,
             source.last_character_index
         )
-        return self.contents[key]
+        return self.contents.get(key, "")

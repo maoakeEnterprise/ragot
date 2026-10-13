@@ -6,6 +6,7 @@ from utils.data_manager import DataManager
 from utils.retrievier import Retriever
 from utils.models import (RagDataset, AnsweredQuestion, UnansweredQuestion,
                           MinimalSearchResults, StudentSearchResults)
+from utils.manager_llm import ManagerLLM, ChunkLookUp
 from utils.rag import Rag
 
 
@@ -27,4 +28,6 @@ __all__ = [
     "UnansweredQuestion",
     "MinimalSearchResults",
     "StudentSearchResults",
+    "ManagerLLM",
+    "ChunkLookUp",
 ]

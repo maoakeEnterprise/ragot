@@ -1,5 +1,6 @@
 from utils import (Chunker, ChunkIndex, DataManager, Retriever, RagDataset,
-                   MinimalSearchResults, StudentSearchResults)
+                   MinimalSearchResults, StudentSearchResults,
+                   ManagerLLM, ChunkLookUp)
 from pathlib import Path
 from tqdm import tqdm
 
@@ -100,7 +101,17 @@ class Rag:
             output.model_dump_json(indent=2))
 
     def answer(self, query: str, k: int = 5) -> None:
-        pass
+        self._check_k(k=k)
+        retrivier = Retriever(index_dir=self.index_dir)
+        sources = retrivier.search(query=query, k=k)
+        lookup = ChunkLookUp(self.index_dir)
+        llm_m = ManagerLLM()
+        res = llm_m.generate(
+            query=query,
+            sources=sources,
+            texts=[lookup.get(s) for s in sources]
+        )
+        print(res)
 
     def answer_dataset(
             self,
