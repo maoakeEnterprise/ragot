@@ -1,7 +1,8 @@
 from utils import (Chunker, ChunkIndex, DataManager, Retriever, RagDataset,
                    MinimalSearchResults, StudentSearchResults,
                    ManagerLLM, ChunkLookUp, MinimalAnswer,
-                   StudentSearchResultsAndAnswer)
+                   StudentSearchResultsAndAnswer, AnsweredQuestion,
+                   MinimalSource)
 from pathlib import Path
 from tqdm import tqdm
 
@@ -154,4 +155,67 @@ class Rag:
             student_search_results_path: str,
             dataset_path: str
     ) -> None:
-        pass
+        search_result = StudentSearchResults.model_validate_json(
+            Path(student_search_results_path).read_text()
+        )
+        k_recall = [k for k in [1, 3, 5, 10] if k <= search_result.k]
+        if not k_recall:
+            raise ValueError("Something is wrong with the value k")
+        tot_k = {
+            k: 0.0
+            for k in k_recall
+        }
+        data_set = RagDataset.model_validate_json(
+            Path(dataset_path).read_text()
+        )
+        data_formated: list[AnsweredQuestion] = [
+            data for data in data_set.rag_questions
+            if isinstance(data, AnsweredQuestion) and len(data.sources) > 0
+        ]
+        if not data_formated:
+            raise ValueError("Something is wrong with "
+                             "the dataset_path in evaluate")
+        search_dict = {
+            search.question_id: search.retrieved_sources
+            for search in search_result.search_results
+        }
+
+        for expected in data_formated:
+            retrieve = search_dict.get(expected.question_id, [])
+            for k in k_recall:
+                tot_k[k] += self._recall_from_k(k, retrieve, expected.sources)
+        for k in k_recall:
+            print(f"Recall@{k}: {(tot_k[k] / len(data_formated)):.3f}")
+
+    def _recall_from_k(self, k: int, retrieve: list[MinimalSource],
+                       expected: list[MinimalSource]) -> float:
+        count: int = 0
+        for source in expected:
+            for r in retrieve[:k]:
+                if r.file_path != source.file_path:
+                    continue
+                if self._is_overlap(r, source):
+                    count += 1
+                    break
+        return count/len(expected)
+
+    def _is_overlap(self, search: MinimalSource, source: MinimalSource
+                    ) -> bool:
+        search_span = (search.first_character_index,
+                       search.last_character_index)
+        source_span = (source.first_character_index,
+                       source.last_character_index)
+        overlap_span = (max(search_span[0], source_span[0]),
+                        min(search_span[1], source_span[1]))
+        overlap = overlap_span[1] - overlap_span[0]
+        if overlap <= 0:
+            return False
+        return self._is_compute_overlap(overlap, source_span)
+
+    def _is_compute_overlap(self, actual_overlap: int, span: tuple[int, int]
+                            ) -> bool:
+        total_span = span[1] - span[0]
+        required_overlap = int(total_span * 0.05)
+        if actual_overlap >= required_overlap:
+            return True
+        return False
