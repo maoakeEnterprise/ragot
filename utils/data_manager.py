@@ -4,7 +4,7 @@ import bm25s
 
 
 class DataManager:
-    def __init__(self):
+    def __init__(self) -> None:
         self.tokenizer = Tokenizer()
         self.bm25 = bm25s.BM25(k1=1.5, b=0.75)
 

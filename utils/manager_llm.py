@@ -3,7 +3,8 @@ from transformers import (
     AutoTokenizer,
     AutoModelForCausalLM,
     GenerationMixin,
-    PreTrainedTokenizerBase
+    PreTrainedTokenizerBase,
+    BatchEncoding
     )
 from utils import DataManager, ChunkIndex, MinimalSource
 
@@ -31,13 +32,14 @@ class ManagerLLM:
             self.model_name,
             dtype=torch.bfloat16 if self.device == "cuda" else torch.float32,
         )
-        self.model.to(self.device)
+        self.model.to(self.device)  # type: ignore[arg-type]
         self.model.eval()
 
     def _build_context(self, sources: list[MinimalSource], texts: list[str],
                        max_context_tokens: int = 3000) -> str:
         early_context: list[str] = []
         used_token = 0
+        assert self.tokenizer is not None
 
         for source, text in zip(sources, texts):
             details = f"[File: {source.file_path}] \n{text}\n"
@@ -65,26 +67,30 @@ class ManagerLLM:
                 "content": f"Context : {context} \nQuestion: {query}"
             }
         ]
-        inputs = self.tokenizer.apply_chat_template(
+        pre_inputs = self.tokenizer.apply_chat_template(
             message,
             tokenize=True,
             add_generation_prompt=True,
             enable_thinking=False,
             return_tensors="pt",
             return_dict=True
-        ).to(self.device)
+        )
+        assert isinstance(pre_inputs, BatchEncoding)
+        inputs = pre_inputs.to(self.device)
         with torch.inference_mode():
-            output = self.model.generate(
+            output = self.model.generate(  # type: ignore[misc]
                 **inputs,
                 max_new_tokens=max_new_tokens,
                 do_sample=False
             )
         input_len = inputs["input_ids"].shape[1]
         answer_id = output[0][input_len:]
-        return self.tokenizer.decode(
+        res = self.tokenizer.decode(
             answer_id,
             skip_special_tokens=True
-        ).strip()
+        )
+        assert isinstance(res, str)
+        return res.strip()
 
 
 class ChunkLookUp:
