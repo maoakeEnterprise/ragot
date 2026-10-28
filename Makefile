@@ -1,4 +1,4 @@
-.PHONY: install run debug clean lint data_search_doc moulinette_doc data_search_code moulinette_code index answer answer_code answer_doc evaluate_code
+.PHONY: install run debug clean lint data_search_doc moulinette_doc data_search_code moulinette_code index answer answer_code answer_doc evaluate_code gpu_available
 
 Q ?= How do I configure the KV cache in vLLM?
 ARGS ?=
@@ -12,6 +12,9 @@ run:
 lint:
 	uv run flake8 .
 	uv run mypy . --warn-return-any --warn-unused-ignores --ignore-missing-imports --disallow-untyped-defs --check-untyped-defs
+
+gpu_available:
+	uv run python -c "import torch; print(torch.cuda.is_available())"
 
 debug:
 	uv run python -m pdb -m src $(ARGS)
