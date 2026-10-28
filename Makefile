@@ -1,4 +1,4 @@
-.PHONY: install run debug clean lint data_search_doc moulinette_doc data_search_code moulinette_code index answer answer_code answer_doc
+.PHONY: install run debug clean lint data_search_doc moulinette_doc data_search_code moulinette_code index answer answer_code answer_doc evaluate_code
 
 Q ?= How do I configure the KV cache in vLLM?
 
@@ -33,3 +33,13 @@ answer_code: data_search_code
 
 answer_doc: data_search_doc
 	uv run python -m src answer_dataset --student_search_results_path data/output/search_results/UnansweredQuestions/dataset_docs_public.json --save_directory data/output/search_results_and_answer
+
+evaluate_code:
+	uv run python -m src evaluate \
+    --student_search_results_path data/output/search_results/UnansweredQuestions/dataset_code_public.json \
+    --dataset_path data/datasets/AnsweredQuestions/dataset_code_public.json
+
+evaluate_doc:
+	uv run python -m src evaluate \
+    --student_search_results_path data/output/search_results/UnansweredQuestions/dataset_docs_public.json \
+    --dataset_path data/datasets/AnsweredQuestions/dataset_docs_public.json
