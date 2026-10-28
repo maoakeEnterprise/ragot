@@ -22,3 +22,6 @@ dev = [
     "flake8",
     "mypy"
 ]
+
+[tool.mypy]
+exclude = ["^data/", "^\\.venv/"]
