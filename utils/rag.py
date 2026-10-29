@@ -1,3 +1,4 @@
+"""CLI commands of the RAG system."""
 from utils import (Chunker, ChunkIndex, DataManager, Retriever, RagDataset,
                    MinimalSearchResults, StudentSearchResults,
                    ManagerLLM, ChunkLookUp, MinimalAnswer,
@@ -8,7 +9,20 @@ from tqdm import tqdm
 
 
 class Rag:
+    """RAG pipeline exposed as CLI commands through Python Fire.
+
+    Attributes:
+        index_dir: Directory of the index used by the search and answer
+            commands.
+    """
+
     def __init__(self, index_dir: str = "data/processed/"):
+        """Initialize the pipeline.
+
+        Args:
+            index_dir: Directory of the index (``chunks.json`` and
+                ``bm25/``).
+        """
         self.index_dir = index_dir
 
     def index(
@@ -17,6 +31,19 @@ class Rag:
             raw_dir: str = "data/raw/",
             output_dir: str = "data/processed/"
     ) -> None:
+        """Chunk the vLLM corpus and build the BM25 index.
+
+        Args:
+            max_chunk_size: Maximum number of characters per chunk,
+                between 201 and 2000.
+            raw_dir: Directory containing ``vllm-0.10.1/``.
+            output_dir: Directory where the index is saved.
+
+        Raises:
+            ValueError: If ``max_chunk_size`` is invalid or no file is
+                found.
+            FileNotFoundError: If the corpus directory does not exist.
+        """
 
         if (not isinstance(max_chunk_size, int)
                 or isinstance(max_chunk_size, bool)
@@ -56,10 +83,31 @@ class Rag:
 
     @staticmethod
     def _check_k(k: int) -> None:
+        """Check that ``k`` is a strictly positive integer.
+
+        Args:
+            k: Number of results requested.
+
+        Raises:
+            ValueError: If ``k`` is not an integer or is lower than 1.
+        """
         if not isinstance(k, int) or isinstance(k, bool) or k < 1:
             raise ValueError("k should be an integer upper to 0")
 
     def search(self, query: str, k: int = 5) -> None:
+        """Print the top-k sources for a single query.
+
+        Each line has the form ``file_path [first:last]``.
+
+        Args:
+            query: The question.
+            k: Number of sources to return.
+
+        Raises:
+            ValueError: If ``k`` is invalid or the query has no usable
+                token.
+            FileNotFoundError: If the index does not exist.
+        """
 
         self._check_k(k)
         retriever = Retriever(index_dir=self.index_dir)
@@ -74,6 +122,23 @@ class Rag:
             k: int = 5,
             save_directory: str = "data/output/search_results"
     ) -> None:
+        """Search every question of a dataset and save the results.
+
+        The output is a :class:`StudentSearchResults` JSON file written in
+        ``save_directory`` with the same name as the dataset. A question with
+        no usable token gets an empty list of sources.
+
+        Args:
+            dataset_path: Path of a :class:`RagDataset` JSON file.
+            k: Number of sources per question.
+            save_directory: Directory where the results are saved.
+
+        Raises:
+            ValueError: If ``k`` is invalid or larger than the number of
+                chunks.
+            FileNotFoundError: If the dataset or the index does not exist.
+            pydantic.ValidationError: If the dataset is malformed.
+        """
         self._check_k(k)
         retriever = Retriever(index_dir=self.index_dir)
         if k > len(retriever.chunk_index.chunks):
@@ -106,6 +171,17 @@ class Rag:
         print(f"Saved to {dataset_path}")
 
     def answer(self, query: str, k: int = 5) -> None:
+        """Retrieve the top-k sources and print the generated answer.
+
+        Args:
+            query: The question.
+            k: Number of sources given to the model.
+
+        Raises:
+            ValueError: If ``k`` is invalid or the query has no usable
+                token.
+            FileNotFoundError: If the index does not exist.
+        """
         self._check_k(k=k)
         retrivier = Retriever(index_dir=self.index_dir)
         sources = retrivier.search(query=query, k=k)
@@ -123,6 +199,21 @@ class Rag:
             student_search_results_path: str,
             save_directory: str
     ) -> None:
+        """Generate an answer for every question of a search result file.
+
+        The output is a :class:`StudentSearchResultsAndAnswer` JSON file
+        written in ``save_directory`` with the same name as the input file.
+
+        Args:
+            student_search_results_path: Path of a
+                :class:`StudentSearchResults` JSON file.
+            save_directory: Directory where the answers are saved.
+
+        Raises:
+            FileNotFoundError: If the input file or the index does not
+                exist.
+            pydantic.ValidationError: If the input file is malformed.
+        """
         search_result = StudentSearchResults.model_validate_json(
             Path(student_search_results_path).read_text()
         )
@@ -159,6 +250,22 @@ class Rag:
             student_search_results_path: str,
             dataset_path: str
     ) -> None:
+        """Print the recall@k of search results against a ground truth.
+
+        Recall@k is computed for every k in ``{1, 3, 5, 10}`` that is not
+        larger than the ``k`` of the search results.
+
+        Args:
+            student_search_results_path: Path of a
+                :class:`StudentSearchResults` JSON file.
+            dataset_path: Path of an answered :class:`RagDataset` JSON file.
+
+        Raises:
+            ValueError: If no recall can be computed or the dataset has no
+                answered question.
+            FileNotFoundError: If a file does not exist.
+            pydantic.ValidationError: If a file is malformed.
+        """
         search_result = StudentSearchResults.model_validate_json(
             Path(student_search_results_path).read_text()
         )
@@ -193,6 +300,16 @@ class Rag:
 
     def _recall_from_k(self, k: int, retrieve: list[MinimalSource],
                        expected: list[MinimalSource]) -> float:
+        """Compute the recall@k of one question.
+
+        Args:
+            k: Number of retrieved sources to consider.
+            retrieve: Retrieved sources, best first.
+            expected: Ground-truth sources.
+
+        Returns:
+            The fraction of expected sources found in the top-k results.
+        """
         count: int = 0
         for source in expected:
             for r in retrieve[:k]:
@@ -205,6 +322,15 @@ class Rag:
 
     def _is_overlap(self, search: MinimalSource, source: MinimalSource
                     ) -> bool:
+        """Tell whether a retrieved source covers an expected source.
+
+        Args:
+            search: Retrieved source.
+            source: Expected source, in the same file.
+
+        Returns:
+            True if the ranges overlap enough.
+        """
         search_span = (search.first_character_index,
                        search.last_character_index)
         source_span = (source.first_character_index,
@@ -218,6 +344,15 @@ class Rag:
 
     def _is_compute_overlap(self, actual_overlap: int, span: tuple[int, int]
                             ) -> bool:
+        """Tell whether an overlap covers at least 5% of a span.
+
+        Args:
+            actual_overlap: Number of overlapping characters.
+            span: ``(first, last)`` range of the expected source.
+
+        Returns:
+            True if the overlap is at least 5% of the span length.
+        """
         total_span = span[1] - span[0]
         required_overlap = int(total_span * 0.05)
         if actual_overlap >= required_overlap:

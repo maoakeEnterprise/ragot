@@ -1,3 +1,11 @@
+"""Command-line entry point of the RAG system.
+
+Exposes the :class:`utils.Rag` commands through Python Fire and turns every
+expected exception into a readable error message instead of a traceback.
+
+Example:
+    uv run python -m src search "How to configure the OpenAI server?" --k 5
+"""
 from utils import Rag
 import fire
 from pydantic import ValidationError
@@ -6,6 +14,13 @@ import torch
 
 
 def print_error(header: str, message: str, e: BaseException) -> None:
+    """Print a formatted error on stderr and exit with status 1.
+
+    Args:
+        header: Banner line describing the kind of error.
+        message: Short human-readable explanation.
+        e: The exception that was caught.
+    """
     print(f"{header}\n"
           f"{message}\n"
           f"ERROR: {e}\n"

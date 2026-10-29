@@ -1,3 +1,4 @@
+"""English stop words, downloaded from NLTK on first import."""
 import nltk
 from nltk.corpus import stopwords
 

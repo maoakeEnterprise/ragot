@@ -1,3 +1,8 @@
+"""Core package of the RAG system.
+
+Gathers the chunker, tokenizer, BM25 index manager, retriever, LLM manager,
+pydantic data models and the :class:`Rag` class exposing the CLI commands.
+"""
 from utils.chunker import Chunker
 from utils.models import MinimalSource, Chunk, ChunkIndex
 from utils.tokenizer import Tokenizer

@@ -1,3 +1,4 @@
+"""Answer generation with Qwen3-0.6B and lookup of the chunk texts."""
 import torch
 from transformers import (
     AutoTokenizer,
@@ -10,7 +11,24 @@ from utils import DataManager, ChunkIndex, MinimalSource
 
 
 class ManagerLLM:
+    """Generate answers grounded in the retrieved sources.
+
+    The model is loaded lazily, on the first call to :meth:`generate`.
+
+    Attributes:
+        model_name: Hugging Face name of the model.
+        tokenizer: Model tokenizer, None until the model is loaded.
+        model: Causal language model, None until it is loaded.
+        device: ``"cuda"`` if a GPU is available, ``"cpu"`` otherwise.
+        sys_prompt: System prompt asking for grounded, concise answers.
+    """
+
     def __init__(self, model_name: str = "Qwen/Qwen3-0.6B") -> None:
+        """Initialize the manager without loading the model.
+
+        Args:
+            model_name: Hugging Face name of the model.
+        """
         self.model_name = model_name
         self.tokenizer: PreTrainedTokenizerBase | None = None
         self.model: GenerationMixin | None = None
@@ -25,6 +43,10 @@ class ManagerLLM:
         )
 
     def _load(self) -> None:
+        """Load the tokenizer and the model if not already loaded.
+
+        The model uses bfloat16 on GPU and float32 on CPU.
+        """
         if self.model is not None:
             return
         self.tokenizer = AutoTokenizer.from_pretrained(self.model_name)
@@ -37,6 +59,19 @@ class ManagerLLM:
 
     def _build_context(self, sources: list[MinimalSource], texts: list[str],
                        max_context_tokens: int = 3000) -> str:
+        """Build the context passed to the model within a token budget.
+
+        Each snippet is prefixed with its file path. Snippets are added in
+        rank order and skipped when they would exceed the budget.
+
+        Args:
+            sources: Retrieved sources, best first.
+            texts: Text of each source, in the same order.
+            max_context_tokens: Maximum number of tokens of the context.
+
+        Returns:
+            The context string.
+        """
         early_context: list[str] = []
         used_token = 0
         assert self.tokenizer is not None
@@ -57,6 +92,19 @@ class ManagerLLM:
 
     def generate(self, query: str, sources: list[MinimalSource],
                  texts: list[str], max_new_tokens: int = 384) -> str:
+        """Answer a question from the retrieved sources.
+
+        Uses the chat template with thinking disabled and greedy decoding.
+
+        Args:
+            query: The user question.
+            sources: Retrieved sources, best first.
+            texts: Text of each source, in the same order.
+            max_new_tokens: Maximum number of generated tokens.
+
+        Returns:
+            The generated answer, without leading or trailing whitespace.
+        """
         self._load()
         assert self.model is not None and self.tokenizer is not None
         context = self._build_context(sources, texts)
@@ -94,7 +142,19 @@ class ManagerLLM:
 
 
 class ChunkLookUp:
+    """Find the text of a source from its location.
+
+    Attributes:
+        contents: Maps ``(file_path, first_index, last_index)`` to the
+            chunk text.
+    """
+
     def __init__(self, index_dir: str) -> None:
+        """Load every chunk of the index into a lookup table.
+
+        Args:
+            index_dir: Directory containing ``chunks.json``.
+        """
         chunks: ChunkIndex = DataManager.load_chunk_file(
             index_dir=index_dir
         )
@@ -109,6 +169,14 @@ class ChunkLookUp:
         self.contents = contents
 
     def get(self, source: MinimalSource) -> str:
+        """Return the text of a source.
+
+        Args:
+            source: Location of the source.
+
+        Returns:
+            The chunk text, or an empty string if the source is unknown.
+        """
         key = (
             source.file_path,
             source.first_character_index,
