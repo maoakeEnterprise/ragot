@@ -2,6 +2,7 @@ from pathlib import Path
 from langchain_text_splitters import Language, RecursiveCharacterTextSplitter
 from langchain_core.documents import Document
 from utils.models import Chunk
+from tqdm import tqdm
 
 
 class Chunker:
@@ -25,7 +26,7 @@ class Chunker:
         md_splitter = self._init_chunk_markdown(max_chunk=max_chunk)
         txt_splitter = self._init_chunk_txt(max_chunk=max_chunk)
         list_chunk: list[Chunk] = []
-        for path in list_path:
+        for path in tqdm(list_path):
             with path.open("r", encoding="utf-8", errors="ignore") as f:
                 content = f.read()
                 if self._get_extent(path) == 'py':

@@ -1,5 +1,6 @@
 from utils.text_utils import STOP_WORDS
 import re
+from tqdm import tqdm
 
 
 class Tokenizer:
@@ -13,7 +14,7 @@ class Tokenizer:
     def tokenize(self, text: str) -> list[str]:
         words = self._extract_words(text)
         res: list[str] = []
-        for word in words:
+        for word in tqdm(words):
             if self._is_kept(word):
                 tmp = self._split_identifier(word)
                 if len(tmp) > 1:

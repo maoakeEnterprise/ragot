@@ -51,6 +51,8 @@ class Rag:
         data_m.save_index_data(
             chunk_index=chunk_index, index_dir=output_dir
         )
+        print(f" Ingestion complete! Indexed {len(chunk_index.chunks)} chunks "
+              f"under {output_dir}")
 
     @staticmethod
     def _check_k(k: int) -> None:
@@ -101,6 +103,7 @@ class Rag:
         )
         (save_dir / Path(dataset_path).name).write_text(
             output.model_dump_json(indent=2))
+        print(f"Saved to {dataset_path}")
 
     def answer(self, query: str, k: int = 5) -> None:
         self._check_k(k=k)
@@ -149,6 +152,7 @@ class Rag:
         (save_dir / Path(student_search_results_path).name).write_text(
             output.model_dump_json(indent=2)
         )
+        print(f"Saved to {student_search_results_path}")
 
     def evaluate(
             self,
